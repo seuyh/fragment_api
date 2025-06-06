@@ -23,7 +23,6 @@ class Transactions:
             logging.info("Sending successful!")
             return 1
 
-    @staticmethod
-    def send_ton(mnemonics, destination_address, amount, payload, nano_amount=True, version='v4r2', testnet=False, send_mode=0):
-        result = asyncio.run(Transactions._send_ton_async(mnemonics, destination_address, amount, payload, nano_amount, version, testnet, send_mode))
+    def send_ton(self, mnemonics, destination_address, amount, payload, nano_amount=True, version='v4r2', testnet=False, send_mode=0):
+        result = asyncio.run(self._send_ton_async(mnemonics, destination_address, amount, payload, nano_amount, version, testnet, send_mode))
         return result

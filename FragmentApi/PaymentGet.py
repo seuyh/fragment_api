@@ -9,6 +9,7 @@ import base64
 
 class PaymentGet:
     def __init__(self):
+        self.WalletUtils = WalletUtils()
         with open('cookies.json', 'r') as file:
             loaded_cookies = json.load(file)
 
@@ -32,7 +33,7 @@ class PaymentGet:
         payload = {
             "account": json.dumps({
                 "chain": "-239",
-                "publicKey": WalletUtils.wallet_from_mnemonics(mnemonics)[0]["public_key"]
+                "publicKey": self.WalletUtils.wallet_from_mnemonics(mnemonics)[0]["public_key"]
             }),
             "device": json.dumps({
                 "platform": "web",
@@ -66,6 +67,7 @@ class PaymentGet:
         recipient_id_dirt = requests.post(url, headers=self.headers, cookies=self.cookies,
                                           data=f"query={recipient}&quantity=&method=searchStarsRecipient")
         recipient_id = recipient_id_dirt.json().get("found", {}).get("recipient", "")
+
 
         req_id_dirt = requests.post(url, headers=self.headers, cookies=self.cookies,
                                     data=f"recipient={recipient_id}&quantity={quantity}&method=initBuyStarsRequest")
