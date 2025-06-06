@@ -1,4 +1,3 @@
-import asyncio
 from Functions.LogInit import log_init
 import json
 from FragmentApi.BuyStars import buy_stars
