@@ -11,6 +11,8 @@ class Transactions:
         provider = TonCenterClient(testnet=testnet)
         wallet = Wallet(mnemonics=mnemonics, version=version, provider=provider)
         if nano_amount:
+            if isinstance(amount, str):
+                amount = int(amount)
             amount = from_nano(amount, "ton")
 
         clean_payload = payload.replace("\n", " ")
@@ -22,6 +24,7 @@ class Transactions:
         else:
             logging.info("Sending successful!")
             return 1
+
 
     def send_ton(self, mnemonics, destination_address, amount, payload, nano_amount=True, version='v4r2', testnet=False, send_mode=0):
         result = asyncio.run(self._send_ton_async(mnemonics, destination_address, amount, payload, nano_amount, version, testnet, send_mode))
