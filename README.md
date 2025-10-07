@@ -95,7 +95,7 @@ pip install -r requirements.txt
 Для взаимодействия с API Fragment скрипту нужны ваши сессионные cookie.
 
 1.  Установите в браузер расширение для управления cookie, например, **EditThisCookie**.
-2.  Откройте сайт [Fragment](fragment.com) и авторизуйтесь через Telegram.
+2.  Откройте сайт [Fragment](https://fragment.com) и авторизуйтесь через Telegram.
 3.  Нажмите на иконку расширения, найдите и скопируйте значения для `stel_dt`, `stel_ssid`, `stel_token` и `stel_ton_token`.
 4.  Вставьте эти значения в соответствующие поля в файле `cookies.json`.
 
@@ -218,7 +218,7 @@ A new wallet needs to be activated (its contract deployed on the network).
 The script needs your session cookies to interact with the Fragment API.
 
 1.  Install a cookie management extension in your browser, such as **EditThisCookie**.
-2.  Go to the [Fragment](fragment.com) website and log in via Telegram.
+2.  Go to the [Fragment](https://fragment.com) website and log in via Telegram.
 3.  Click the extension's icon, find and copy the values for `stel_dt`, `stel_ssid`, `stel_token`, and `stel_ton_token`.
 4.  Paste these values into the corresponding fields in the `cookies.json` file.
 
