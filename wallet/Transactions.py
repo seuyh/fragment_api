@@ -1,13 +1,11 @@
 import logging
 
 from TonTools import TonCenterClient, Wallet
-import asyncio
 from tonsdk.utils import from_nano
 
 
 class Transactions:
-    @staticmethod
-    async def _send_ton_async(mnemonics, destination_address, amount, payload, nano_amount, version, testnet, send_mode):
+    async def send_ton(self, mnemonics, destination_address, amount, payload, nano_amount=True, version='v4r2', testnet=False, send_mode=0):
         provider = TonCenterClient(testnet=testnet)
         wallet = Wallet(mnemonics=mnemonics, version=version, provider=provider)
         if nano_amount:
@@ -24,8 +22,3 @@ class Transactions:
         else:
             logging.info("Sending successful!")
             return 1
-
-
-    def send_ton(self, mnemonics, destination_address, amount, payload, nano_amount=True, version='v4r2', testnet=False, send_mode=0):
-        result = asyncio.run(self._send_ton_async(mnemonics, destination_address, amount, payload, nano_amount, version, testnet, send_mode))
-        return result

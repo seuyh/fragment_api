@@ -1,4 +1,4 @@
-import requests
+import aiohttp
 from re import search
 import logging
 from wallet.WalletUtils import WalletUtils
@@ -21,13 +21,15 @@ class PaymentGet:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 OPR/117.0.0.0 (Edition Yx GX)"
         }
 
-    def _hash_get(self):
-        response = requests.get("https://fragment.com/stars/buy", cookies=self.cookies)
-        if response.status_code == 200:
-            return search(r'api\?hash=([a-zA-Z0-9]+)', response.text).group(1)
+    async def _hash_get(self, session):
+        async with session.get("https://fragment.com/stars/buy", cookies=self.cookies) as response:
+            if response.status == 200:
+                text = await response.text()
+                return search(r'api\?hash=([a-zA-Z0-9]+)', text).group(1)
 
-    def _update_url(self):
-        return f"https://fragment.com/api?hash={self._hash_get()}"
+    async def _update_url(self, session):
+        hash_val = await self._hash_get(session)
+        return f"https://fragment.com/api?hash={hash_val}"
 
     def _payload_get(self, req_id, mnemonics):
         payload = {
@@ -59,27 +61,27 @@ class PaymentGet:
 
         return text_part
 
-    def get_data_for_payment(self, recipient, quantity, mnemonics):
+    async def get_data_for_payment(self, recipient, quantity, mnemonics):
         logging.warning(f"Sending {quantity} stars to @{recipient}...")
+        async with aiohttp.ClientSession(headers=self.headers, cookies=self.cookies) as session:
+            url = await self._update_url(session)
 
-        url = self._update_url()
+            async with session.post(url, data=f"query={recipient}&quantity=&method=searchStarsRecipient") as response:
+                recipient_id_dirt = await response.json()
+                recipient_id = recipient_id_dirt.get("found", {}).get("recipient", "")
 
-        recipient_id_dirt = requests.post(url, headers=self.headers, cookies=self.cookies,
-                                          data=f"query={recipient}&quantity=&method=searchStarsRecipient")
-        recipient_id = recipient_id_dirt.json().get("found", {}).get("recipient", "")
+            async with session.post(url, data=f"recipient={recipient_id}&quantity={quantity}&method=initBuyStarsRequest") as response:
+                req_id_dirt = await response.json()
+                req_id = req_id_dirt.get("req_id", "")
 
+            encoded_payload = self._payload_get(req_id, mnemonics)
 
-        req_id_dirt = requests.post(url, headers=self.headers, cookies=self.cookies,
-                                    data=f"recipient={recipient_id}&quantity={quantity}&method=initBuyStarsRequest")
-        req_id = req_id_dirt.json().get("req_id", "")
+            async with session.post(url, data=encoded_payload) as response:
+                buy_payload_dirt = await response.json()
+                buy_payload = buy_payload_dirt["transaction"]["messages"][0]
 
-        encoded_payload = self._payload_get(req_id, mnemonics)
-
-        buy_payload_dirt = requests.post(url, headers=self.headers, cookies=self.cookies, data=encoded_payload)
-        buy_payload = buy_payload_dirt.json()["transaction"]["messages"][0]
-
-        address, amount, encoded_message = buy_payload["address"], buy_payload["amount"], buy_payload["payload"]
-        payload = self._message_decode(encoded_message)
-        logging.info("Payment data received!")
-        logging.warning("Waiting to send transaction...")
-        return address, amount, payload
+            address, amount, encoded_message = buy_payload["address"], buy_payload["amount"], buy_payload["payload"]
+            payload = self._message_decode(encoded_message)
+            logging.info("Payment data received!")
+            logging.warning("Waiting to send transaction...")
+            return address, amount, payload
