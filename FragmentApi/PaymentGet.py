@@ -1,6 +1,8 @@
 import aiohttp
 from re import search
 import logging
+
+import requests
 from wallet.WalletUtils import WalletUtils
 from urllib.parse import urlencode
 import json
@@ -21,14 +23,13 @@ class PaymentGet:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 OPR/117.0.0.0 (Edition Yx GX)"
         }
 
-    async def _hash_get(self, session):
-        async with session.get("https://fragment.com/stars/buy", cookies=self.cookies) as response:
-            if response.status == 200:
-                text = await response.text()
-                return search(r'api\?hash=([a-zA-Z0-9]+)', text).group(1)
+    async def _hash_get(self):
+        response = requests.get("https://fragment.com/stars/buy", cookies=self.cookies)
+        if response.status_code == 200:
+            return search(r'api\?hash=([a-zA-Z0-9]+)', response.text).group(1)
 
-    async def _update_url(self, session):
-        hash_val = await self._hash_get(session)
+    async def _update_url(self):
+        hash_val = await self._hash_get()
         return f"https://fragment.com/api?hash={hash_val}"
 
     def _payload_get(self, req_id, mnemonics):
@@ -64,7 +65,7 @@ class PaymentGet:
     async def get_data_for_payment(self, recipient, quantity, mnemonics):
         logging.warning(f"Sending {quantity} stars to @{recipient}...")
         async with aiohttp.ClientSession(headers=self.headers, cookies=self.cookies) as session:
-            url = await self._update_url(session)
+            url = await self._update_url()
 
             async with session.post(url, data=f"query={recipient}&quantity=&method=searchStarsRecipient") as response:
                 recipient_id_dirt = await response.json()

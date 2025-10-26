@@ -1,6 +1,7 @@
 from Functions.LogInit import log_init
 import json
 from FragmentApi.BuyStars import buy_stars
+import asyncio
 
 if __name__ == '__main__':
     log_init()
@@ -10,4 +11,4 @@ if __name__ == '__main__':
     recipient = input("Recipient: ")
     amount = input("Amount: ")
 
-    buy_stars(recipient, int(amount), mnemonics, send_mode=1, testnet=False)
+    asyncio.run(buy_stars(recipient, int(amount), mnemonics, send_mode=1, testnet=False))
